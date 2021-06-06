@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MedicoController;
+use App\Http\Controllers\EspecialidadeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,6 +20,7 @@ Route::get('/', function () {
 });
 
 Route::resource("medicos" , MedicoController::class) ->middleware(['auth']);
+Route::resource("especialidades" , EspecialidadeController::class) ->middleware(['auth']);
 
 Route::get('/dashboard', function () {
     return view('dashboard');

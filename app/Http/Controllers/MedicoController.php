@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medico;
+use Exception;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,9 +17,7 @@ class MedicoController extends Controller
      */
     public function index()
     {
-        //
-        $medicos= Medico::all();
-        return view('medicos.index', ['medicos' => Medico::all()]);
+        return view("medicos.index", ["medicos" => Medico::all()]);
     }
 
     /**
@@ -27,8 +27,7 @@ class MedicoController extends Controller
      */
     public function create()
     {
-        //
-        return view('medicos.create');
+        return view("medicos.create");
     }
 
     /**
@@ -39,31 +38,24 @@ class MedicoController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        $input=$request->all();
-        //$medico= new Medico($input);
-
-        $rules= [
-            "name" => "required",
-            "address" => "required",
-            "phone" => "required|numeric|digits:9"
-        ];
-
-        $validator = Validator::make($input, $rules);
+        //var_dump($request->get("name"));
+        $input = $request->all();
+        $validator = $this->validateInputs($input);
 
         if($validator->fails()){
             return redirect()->route('medicos.index')->withErrors($validator->errors());
         }
 
-        $medico= new Medico();
+        //$medico = new Medico($input);
+        $medico = new Medico();
         $medico->name = $input['name'];
         $medico->address = $input['address'];
         $medico->phone = $input['phone'];
-        var_dump($medico->getAttributes());
         $medico->save();
 
-        return redirect()->route('medicos.index')->with('message', 'Médico inserido com sucesso!');
+        return redirect()->route('medicos.index')->with("message", "Médico $medico->id inserido com sucesso!");
     }
+
 
     /**
      * Display the specified resource.
@@ -73,8 +65,7 @@ class MedicoController extends Controller
      */
     public function show(Medico $medico)
     {
-        //
-        return view('medicos.show', ['medico' => $medico]);
+        return view('medicos.show', ["medico" => $medico]);
     }
 
     /**
@@ -85,7 +76,7 @@ class MedicoController extends Controller
      */
     public function edit(Medico $medico)
     {
-        //
+        return view('medicos.edit', ["medico" => $medico]);
     }
 
     /**
@@ -97,7 +88,24 @@ class MedicoController extends Controller
      */
     public function update(Request $request, Medico $medico)
     {
-        //
+        $input = $request->all();
+        $validator = $this->validateInputs($input);
+
+        if($validator->fails()){
+            return redirect()->route('medicos.edit', $medico->id)->withErrors($validator->errors());
+        }
+
+        $medico->name = $input['name'];
+        $medico->address = $input['address'];
+        $medico->phone = $input['phone'];
+        try{
+            $medico->save();
+        }catch(Exception $e){
+            return redirect()->route('medicos.index')->withErrors("Ocorreu um erro!");
+        }
+
+
+        return redirect()->route('medicos.index')->with("message", "Médico $medico->id editado com sucesso!");
     }
 
     /**
@@ -108,6 +116,19 @@ class MedicoController extends Controller
      */
     public function destroy(Medico $medico)
     {
-        //
+        //$medico->delete();
+        Medico::destroy($medico->id);
+        return redirect()->route('medicos.index')->with('message', "Médico eliminado com sucesso!");
+    }
+
+    private function validateInputs($input){
+
+        $rules = [
+            'name' => 'required',
+            'address' => 'required',
+            'phone' => 'required|numeric|digits:9'
+        ];
+
+        return Validator::make($input, $rules);
     }
 }

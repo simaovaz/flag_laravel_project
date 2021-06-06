@@ -10,4 +10,8 @@ class Medico extends Model
     use HasFactory;
 
     //protected $fillable= array('name', 'address', 'phone');
+
+    public function speciality(){
+        return $this->belongsTo(Especialidade::class);
+    }
 }

@@ -28,6 +28,7 @@
                 <td>{{ __('Nome') }}</td>
                 <td>{{ __('Morada') }}</td>
                 <td>{{ __('Telefone') }}</td>
+                <td>{{ __('Especialidade') }}</td>
                 <td>{{ __('Ações') }}</td>
             </tr>
         </thead>
@@ -37,6 +38,7 @@
                 <td>{{ $medico->name ?? '' }}</td>
                 <td>{{ $medico->address ?? '' }}</td>
                 <td>{{ $medico->phone ?? '' }}</td>
+                <td>{{ $medico->speciality->name ?? '' }}</td>
                 <td>
                     <a class="btn btn-small btn-success" href="{{ route('medicos.show', $medico->id) }}"><i class="fa fa-eye"></i></a>
                     <a class="btn btn-small btn-info" href="{{ route('medicos.edit', $medico->id) }}"><i class="fa fa-edit"></i></a>

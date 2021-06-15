@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Especialidade;
 use App\Models\Medico;
+use App\Models\Speciality;
 use Exception;
-
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,7 +29,7 @@ class MedicoController extends Controller
      */
     public function create()
     {
-        return view("medicos.create");
+        return view("medicos.create", ["especialidades" => Especialidade::all()]);
     }
 
     /**
@@ -38,19 +40,16 @@ class MedicoController extends Controller
      */
     public function store(Request $request)
     {
-        //var_dump($request->get("name"));
         $input = $request->all();
         $validator = $this->validateInputs($input);
+        $input['photo'] = $this->saveFoto($request, uniqid());
 
         if($validator->fails()){
             return redirect()->route('medicos.index')->withErrors($validator->errors());
         }
 
         //$medico = new Medico($input);
-        $medico = new Medico();
-        $medico->name = $input['name'];
-        $medico->address = $input['address'];
-        $medico->phone = $input['phone'];
+        $medico = $this->fillMedico(new Medico(), $input);
         $medico->save();
 
         return redirect()->route('medicos.index')->with("message", "Médico $medico->id inserido com sucesso!");
@@ -76,7 +75,7 @@ class MedicoController extends Controller
      */
     public function edit(Medico $medico)
     {
-        return view('medicos.edit', ["medico" => $medico]);
+        return view('medicos.edit', ["medico" => $medico, "especialidades" => Especialidade::all()]);
     }
 
     /**
@@ -95,9 +94,7 @@ class MedicoController extends Controller
             return redirect()->route('medicos.edit', $medico->id)->withErrors($validator->errors());
         }
 
-        $medico->name = $input['name'];
-        $medico->address = $input['address'];
-        $medico->phone = $input['phone'];
+        $medico = $this->fillMedico($medico, $input);
         try{
             $medico->save();
         }catch(Exception $e){
@@ -126,9 +123,35 @@ class MedicoController extends Controller
         $rules = [
             'name' => 'required',
             'address' => 'required',
-            'phone' => 'required|numeric|digits:9'
+            'phone' => 'required|numeric|digits:9',
+            'especialidade' => 'numeric'
         ];
 
         return Validator::make($input, $rules);
+    }
+
+
+    private function fillMedico(Medico $medico, array $input) : Medico
+    {
+        $medico->name = $input['name'];
+        $medico->address = $input['address'];
+        $medico->phone = $input['phone'];
+        $medico->speciality_id = $input['especialidade'];
+        if(isset($input['photo'])){
+            $medico->photo = $input['photo'];
+        }
+        return $medico;
+    }
+    private function saveFoto($request, $name){
+        if ($request->hasFile('photo')) {
+            if ($request->file('photo')->isValid()) {
+                $file = $request->file('photo');
+                $extension = $file->extension();
+                $file->storeAs('public', $name.".".$extension);
+                return $name.".".$extension;
+            }
+            //throw new Exception('Uploaded file not a valid image');
+        }
+        return null;
     }
 }
